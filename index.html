@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>🎉 วงล้อสุ่มรางวัล 🎉</title>
+  <style>
+    body {
+      font-family: "Kanit", sans-serif;
+      text-align: center;
+      background: #e8f5e9;
+    }
+    h1 {
+      color: #2e7d32;
+    }
+    canvas {
+      border-radius: 50%;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      margin-top: 20px;
+    }
+    #spin {
+      margin-top: 20px;
+      padding: 12px 25px;
+      font-size: 18px;
+      background: #81c784;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    #spin:hover {
+      background: #66bb6a;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 22px;
+      font-weight: bold;
+      color: #1b5e20;
+    }
+    #credits {
+      margin-top: 15px;
+      font-size: 18px;
+      color: #2e7d32;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎉 วงล้อสุ่มรางวัลร้านสลัดต้ม&มด 🎉</h1>
+
+  <label>กรอกยอดซื้อ (บาท): </label>
+  <input type="number" id="moneyInput" value="0" min="0">
+  <button onclick="addCredits()">เพิ่มสิทธิ์</button>
+
+  <div id="credits">สิทธิ์ของคุณ: 0</div>
+
+  <canvas id="wheel" width="500" height="500"></canvas><br>
+  <button id="spin">หมุนวงล้อ</button>
+  <div id="result"></div>
+
+  <script>
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = 200;
+
+    // 🎁 รายการรางวัล
+    const prizeTexts = [
+      "⭐ ส่วนลด 5 บาท",
+      "😢 ไม่ได้รางวัล",
+      "⭐ ส่วนลด 10 บาท",
+      "😢 ไม่ได้รางวัล",
+      "😢 ไม่ได้รางวัล",
+      "⭐ ส่วนลด 15 บาท",
+      "😢 ไม่ได้รางวัล",
+      "⭐ ส่วนลด 10 บาท",
+      "😢 ไม่ได้รางวัล",
+      "⭐ ส่วนลด 5 บาท",
+      "😢 ไม่ได้รางวัล",
+      "😢 ไม่ได้รางวัล",
+      "🎁 ALLสลัดฟรี 1 ชุด",
+      "😢 ไม่ได้รางวัล",
+      "⭐ ส่วนลด 10 บาท",
+      "😢 ไม่ได้รางวัล",
+      "😢 ไม่ได้รางวัล",
+      "⭐ ส่วนลด 5 บาท",
+      "😢 ไม่ได้รางวัล",
+      "😢 ไม่ได้รางวัล",
+    ];
+
+    let credits = 0; // สิทธิ์เริ่มต้น
+    let startAngle = 0;
+    const arc = (2 * Math.PI) / prizeTexts.length;
+
+    // ฟังก์ชันเพิ่มสิทธิ์ตามยอดซื้อ
+    function addCredits() {
+      const money = parseInt(document.getElementById("moneyInput").value) || 0;
+      const newCredits = Math.floor(money / 50); // ทุก 50 บาท = 1 สิทธิ์
+      credits += newCredits;
+      document.getElementById("credits").innerText = "สิทธิ์ของคุณ: " + credits;
+      document.getElementById("moneyInput").value = 0; // รีเซ็ตช่องกรอก
+    }
+
+    // วาดวงล้อ
+    function drawWheel() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < prizeTexts.length; i++) {
+        let angle = startAngle + i * arc;
+        ctx.fillStyle = i % 2 === 0 ? "#81c784" : "#c8e6c9";
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, angle, angle + arc);
+        ctx.closePath();
+        ctx.fill();
+
+        // ข้อความ
+        ctx.fillStyle = "#000";
+        ctx.font = "14px Kanit";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        let textAngle = angle + arc / 2;
+        let x = centerX + Math.cos(textAngle) * radius * 0.65;
+        let y = centerY + Math.sin(textAngle) * radius * 0.65;
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(textAngle);
+        ctx.fillText(prizeTexts[i], 0, 0);
+        ctx.restore();
+      }
+
+      // เข็มชี้
+      ctx.fillStyle = "red";
+      ctx.beginPath();
+      ctx.moveTo(centerX - 10, centerY - (radius + 20));
+      ctx.lineTo(centerX + 10, centerY - (radius + 20));
+      ctx.lineTo(centerX, centerY - (radius - 10));
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // หมุนวงล้อ
+    let spinning = false;
+    function spinWheel() {
+      if (spinning) return;
+      if (credits <= 0) {
+        alert("❌ ไม่มีสิทธิ์ กรุณาซื้อสินค้าครบ 50 บาทเพื่อรับสิทธิ์!");
+        return;
+      }
+      credits--;
+      document.getElementById("credits").innerText = "สิทธิ์ของคุณ: " + credits;
+
+      spinning = true;
+      let spinAngle = Math.random() * Math.PI * 6 + Math.PI * 4;
+      let duration = 4000;
+      let start = null;
+
+      function animate(timestamp) {
+        if (!start) start = timestamp;
+        let progress = timestamp - start;
+        let easing = Math.min(progress / duration, 1);
+        let angle = spinAngle * (1 - Math.pow(1 - easing, 3));
+        startAngle = angle;
+        drawWheel();
+
+        if (progress < duration) {
+          requestAnimationFrame(animate);
+        } else {
+          spinning = false;
+          showResult();
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    function showResult() {
+      let degrees = (startAngle * 180 / Math.PI) % 360;
+      let index = Math.floor((prizeTexts.length - (degrees / (360 / prizeTexts.length))) % prizeTexts.length);
+      document.getElementById("result").innerText = "🎉 ผลลัพธ์: " + prizeTexts[index];
+    }
+
+    drawWheel();
+    document.getElementById("spin").addEventListener("click", spinWheel);
+  </script>
+</body>
+</html>
